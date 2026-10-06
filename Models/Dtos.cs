@@ -10,7 +10,8 @@ public record PersonajeRequest(
     Faccion Faccion,
     [property: Required, StringLength(80, MinimumLength = 2)] string Afiliacion,
     EstadoPersonaje Estado,
-    bool FuerzaSensitivo);
+    bool FuerzaSensitivo,
+    string? Image = null);
 
 public record CardRequest(
     int PersonajeId,
@@ -53,3 +54,15 @@ public record SimulacionRespuesta(
     List<string> NeutralesIgnorados,
     string Ganador,
     string Criterio);
+
+public record PersonajeConCard(
+    int Id,
+    string Nombre,
+    string Especie,
+    Faccion Faccion,
+    string Afiliacion,
+    EstadoPersonaje Estado,
+    bool FuerzaSensitivo,
+    string image,
+    CardPersonaje? Card
+);

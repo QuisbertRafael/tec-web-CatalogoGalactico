@@ -46,6 +46,14 @@ public static class PersonajeEndpoints
             .Produces<Personaje>()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        g.MapGet("/{id:int}/con-card", (int id, PersonajeService s) => s.ConCard(id).ToHttp())
+            .WithName("PersonajeConCard")
+            .WithSummary("Ficha de combate: personaje junto a su cart")
+            .WithDescription("Combina dos fuentes de datos, la lista de personajes y la lista de cartas, card es null si el personaje no tiene dicha carta")
+            .Produces<PersonajeConCard>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+
         g.MapGet("/{id:int}/eventos", (int id, EventoService s) => s.PorPersonaje(id).ToHttp())
             .WithName("EventosDePersonaje")
             .WithSummary("Eventos en los que participa un personaje")

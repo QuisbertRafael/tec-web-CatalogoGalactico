@@ -10,15 +10,15 @@ public class AlmacenMemoria
 
     public List<Personaje> Personajes { get; } =
     [
-        new(1, "Luke Skywalker", "Humano", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, true),
-        new(2, "Leia Organa", "Humana", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, true),
-        new(3, "Han Solo", "Humano", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, false),
-        new(4, "Darth Vader", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, true),
-        new(5, "Obi-Wan Kenobi", "Humano", Faccion.Rebelde, "Orden Jedi", EstadoPersonaje.Muerto, true),
-        new(6, "Wilhuff Tarkin", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, false),
-        new(7, "Emperador Palpatine", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, true),
-        new(8, "Chewbacca", "Wookiee", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, false),
-        new(9, "Boba Fett", "Humano", Faccion.Neutral, "Cazarrecompensas", EstadoPersonaje.Vivo, false),
+        new(1, "Luke Skywalker", "Humano", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, true, "https://static.wikia.nocookie.net/starwars/images/6/6c/LukeSkywalker-RotJAVA.png/revision/latest?cb=20260214054914"),
+        new(2, "Leia Organa", "Humana", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, true, "https://static.wikia.nocookie.net/starwars/images/9/9b/Princessleiaheadwithgun.jpg/revision/latest/scale-to-width-down/1000?cb=20240522043127"),
+        new(3, "Han Solo", "Humano", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, false, "https://static.wikia.nocookie.net/starwars/images/4/49/HanSolo1BBY-TheStarWarsBook.png/revision/latest?cb=20241220234647"),
+        new(4, "Darth Vader", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, true, "https://static.wikia.nocookie.net/starwars/images/d/de/DarthVader-TheEmpire2026.png/revision/latest?cb=20260522041242"),
+        new(5, "Obi-Wan Kenobi", "Humano", Faccion.Rebelde, "Orden Jedi", EstadoPersonaje.Muerto, true, "https://static.wikia.nocookie.net/starwars/images/c/c5/ObiSWC.png/revision/latest?cb=20250422041447"),
+        new(6, "Wilhuff Tarkin", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, false, "https://static.wikia.nocookie.net/starwars/images/2/2a/AdmiralTarkin-BaseSeries3.png/revision/latest?cb=20251111015027"),
+        new(7, "Emperador Palpatine", "Humano", Faccion.Imperio, "Imperio Galáctico", EstadoPersonaje.Muerto, true, "https://static.wikia.nocookie.net/starwars/images/e/e2/Palpatine-CEUEEd.png/revision/latest/scale-to-width-down/1000?cb=20250105171652"),
+        new(8, "Chewbacca", "Wookiee", Faccion.Rebelde, "Alianza Rebelde", EstadoPersonaje.Vivo, false, "https://static.wikia.nocookie.net/starwars/images/2/25/Chewbacca-SWBC5cvr.png/revision/latest?cb=20260426033709"),
+        new(9, "Boba Fett", "Humano", Faccion.Neutral, "Cazarrecompensas", EstadoPersonaje.Vivo, false, "https://static.wikia.nocookie.net/starwars/images/4/46/BobaFett-SWI206.png/revision/latest/scale-to-width-down/1000?cb=20250317160030"),
     ];
 
     public List<CardPersonaje> Cartas { get; } =

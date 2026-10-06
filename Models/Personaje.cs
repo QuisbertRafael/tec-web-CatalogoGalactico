@@ -11,4 +11,5 @@ public record Personaje(
     Faccion Faccion,
     string Afiliacion,
     EstadoPersonaje Estado,
-    bool FuerzaSensitivo);
+    bool FuerzaSensitivo,
+    string Image);

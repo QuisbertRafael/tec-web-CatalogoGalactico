@@ -24,13 +24,25 @@ public class PersonajeService(AlmacenMemoria db)
             : Resultado<Personaje>.Ok(p);
     }
 
+    public Resultado<PersonajeConCard> ConCard(int id)
+    {
+        var p = db.Personajes.FirstOrDefault(x => x.Id == id);
+        if (p is null)
+            return Resultado<PersonajeConCard>.Falla($"No existe el personaje con el id ¨{id}.", 404);
+        
+        var card = db.Cartas.FirstOrDefault(c => c.PersonajeId == id);
+        return Resultado<PersonajeConCard>.Ok(new PersonajeConCard(
+            p.Id, p.Nombre, p.Especie, p.Faccion, p.Afiliacion, p.Estado, p.FuerzaSensitivo, p.Image, card
+        ));
+    }
+
     public Resultado<Personaje> Crear(PersonajeRequest r)
     {
         var error = Validar(r);
         if (error is not null) return Resultado<Personaje>.Falla(error);
 
         var p = new Personaje(db.SiguientePersonajeId(), r.Nombre.Trim(), r.Especie.Trim(),
-            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo);
+            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes.Add(p);
         return Resultado<Personaje>.Ok(p, 201);
     }
@@ -53,7 +65,7 @@ public class PersonajeService(AlmacenMemoria db)
         }
 
         var actualizado = new Personaje(id, r.Nombre.Trim(), r.Especie.Trim(),
-            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo);
+            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes[idx] = actualizado;
         return Resultado<Personaje>.Ok(actualizado);
     }
