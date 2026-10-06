@@ -11,6 +11,7 @@ public record PersonajeRequest(
     [property: Required, StringLength(80, MinimumLength = 2)] string Afiliacion,
     EstadoPersonaje Estado,
     bool FuerzaSensitivo,
+    //Tarea 1, se agregó el image
     string? Image = null);
 
 public record CardRequest(
@@ -53,8 +54,11 @@ public record SimulacionRespuesta(
     BandoResultado Imperio,
     List<string> NeutralesIgnorados,
     string Ganador,
-    string Criterio);
+    string Criterio,
+    int? GanadorId,
+    string Resultado);
 
+//tarea 2
 public record PersonajeConCard(
     int Id,
     string Nombre,

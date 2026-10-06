@@ -24,6 +24,7 @@ public class PersonajeService(AlmacenMemoria db)
             : Resultado<Personaje>.Ok(p);
     }
 
+    //tarea 2
     public Resultado<PersonajeConCard> ConCard(int id)
     {
         var p = db.Personajes.FirstOrDefault(x => x.Id == id);
@@ -40,7 +41,7 @@ public class PersonajeService(AlmacenMemoria db)
     {
         var error = Validar(r);
         if (error is not null) return Resultado<Personaje>.Falla(error);
-
+        //Tarea 1
         var p = new Personaje(db.SiguientePersonajeId(), r.Nombre.Trim(), r.Especie.Trim(),
             r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes.Add(p);
@@ -63,7 +64,7 @@ public class PersonajeService(AlmacenMemoria db)
                 return Resultado<Personaje>.Falla(
                     $"La muerte del personaje está consignada en el evento '{ev.Nombre}'. Modifique ese evento para cambiar su estado.");
         }
-
+        //Tarea 1
         var actualizado = new Personaje(id, r.Nombre.Trim(), r.Especie.Trim(),
             r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes[idx] = actualizado;

@@ -46,6 +46,7 @@ public static class PersonajeEndpoints
             .Produces<Personaje>()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        //tarea 2
         g.MapGet("/{id:int}/con-card", (int id, PersonajeService s) => s.ConCard(id).ToHttp())
             .WithName("PersonajeConCard")
             .WithSummary("Ficha de combate: personaje junto a su cart")
