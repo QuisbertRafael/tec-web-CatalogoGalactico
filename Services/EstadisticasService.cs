@@ -50,6 +50,8 @@ public class EstadisticasService(AlmacenMemoria db)
         if (idx < 0) return Resultado<SimulacionRespuesta>.Falla($"No existe el evento con id {eventoId}.", 404);
         var ev = db.Eventos[idx];
 
+
+
         // 1) Validar todo antes de modificar nada: sin resultados parciales.
         if (ev.Participantes.Count < 2)
             return Resultado<SimulacionRespuesta>.Falla("El evento necesita al menos 2 participantes para simular una batalla.");
@@ -88,8 +90,18 @@ public class EstadisticasService(AlmacenMemoria db)
         // 3) Guardar el resultado solo cuando todo salió bien.
         db.Eventos[idx] = ev with { Ganador = ganador };
 
+        var bandoGanador = ganador == "Rebelde" ? bandoRebelde
+                        : ganador == "Imperio" ? bandoImperio
+                        : null;
+        var estrella = bandoGanador?.Participantes.OrderByDescending(p => p.Fuerza).First();
+
+        var mensaje = estrella is null
+            ? $"Empate: {bandoRebelde.FuerzaFinal} vs {bandoImperio.FuerzaFinal}"
+            : $"Ganó el bando {ganador} ({bandoRebelde.FuerzaFinal} vs {bandoImperio.FuerzaFinal}). Destacado: {estrella.Nombre}";
+
         return Resultado<SimulacionRespuesta>.Ok(new SimulacionRespuesta(
-            ev.Id, ev.Nombre, semillaUsada, bandoRebelde, bandoImperio, neutrales, ganador, criterio));
+            ev.Id, ev.Nombre, semillaUsada, bandoRebelde, bandoImperio, neutrales, ganador, criterio,
+            estrella?.PersonajeId, mensaje));
     }
 
     private static BandoResultado ConstruirBando(string nombre, List<(Personaje P, CardPersonaje C)> filas, Random rng)

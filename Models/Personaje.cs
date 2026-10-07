@@ -11,4 +11,6 @@ public record Personaje(
     Faccion Faccion,
     string Afiliacion,
     EstadoPersonaje Estado,
-    bool FuerzaSensitivo);
+    bool FuerzaSensitivo,
+    //Tarea 1 se agrega el image con string que recibira un enlace
+    string Image);
