@@ -47,7 +47,19 @@ builder.Services.AddSwaggerGen(o =>
     });
 });
 
+//Tarea 2 cors
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+
 var app = builder.Build();
+app.UseCors();
+
 
 app.UseSwagger();
 app.UseSwaggerUI(o =>
@@ -61,7 +73,6 @@ app.UseSwaggerUI(o =>
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
-
 app.MapPersonajeEndpoints();
 app.MapCartaEndpoints();
 app.MapEventoEndpoints();

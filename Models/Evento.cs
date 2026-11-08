@@ -11,4 +11,9 @@ public record Evento(
     List<int> Participantes,
     List<int> Muertes,
     string? Ganador
-    );
+    )
+    
+    {
+            public List<int> PersonajesParticipantesIds => Participantes;
+
+    };

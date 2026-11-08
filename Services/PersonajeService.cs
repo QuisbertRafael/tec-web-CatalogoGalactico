@@ -24,13 +24,26 @@ public class PersonajeService(AlmacenMemoria db)
             : Resultado<Personaje>.Ok(p);
     }
 
+    //tarea 2
+    public Resultado<PersonajeConCard> ConCard(int id)
+    {
+        var p = db.Personajes.FirstOrDefault(x => x.Id == id);
+        if (p is null)
+            return Resultado<PersonajeConCard>.Falla($"No existe el personaje con el id ¨{id}.", 404);
+        
+        var card = db.Cartas.FirstOrDefault(c => c.PersonajeId == id);
+        return Resultado<PersonajeConCard>.Ok(new PersonajeConCard(
+            p.Id, p.Nombre, p.Especie, p.Faccion, p.Afiliacion, p.Estado, p.FuerzaSensitivo, p.Image, card
+        ));
+    }
+
     public Resultado<Personaje> Crear(PersonajeRequest r)
     {
         var error = Validar(r);
         if (error is not null) return Resultado<Personaje>.Falla(error);
-
+        //Tarea 1
         var p = new Personaje(db.SiguientePersonajeId(), r.Nombre.Trim(), r.Especie.Trim(),
-            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo);
+            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes.Add(p);
         return Resultado<Personaje>.Ok(p, 201);
     }
@@ -51,9 +64,9 @@ public class PersonajeService(AlmacenMemoria db)
                 return Resultado<Personaje>.Falla(
                     $"La muerte del personaje está consignada en el evento '{ev.Nombre}'. Modifique ese evento para cambiar su estado.");
         }
-
+        //Tarea 1
         var actualizado = new Personaje(id, r.Nombre.Trim(), r.Especie.Trim(),
-            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo);
+            r.Faccion, r.Afiliacion.Trim(), r.Estado, r.FuerzaSensitivo, r.Image?.Trim());
         db.Personajes[idx] = actualizado;
         return Resultado<Personaje>.Ok(actualizado);
     }
