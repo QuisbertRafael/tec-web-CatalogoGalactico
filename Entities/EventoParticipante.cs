@@ -12,6 +12,12 @@ public class EventoParticipante
     /// <summary>true si el personaje muere en este evento.</summary>
     public bool Murio { get; set; }
 
+    /// <summary>Experiencia que ganó el personaje en este evento (la fija la simulación).</summary>
+    public int XpOtorgada { get; set; }
+
+    /// <summary>Desglose de por qué ganó esa experiencia.</summary>
+    public string? XpMotivo { get; set; }
+
     public Evento Evento { get; set; } = null!;
     public Personaje Personaje { get; set; } = null!;
 }

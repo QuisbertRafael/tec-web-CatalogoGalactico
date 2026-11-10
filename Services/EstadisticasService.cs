@@ -6,26 +6,48 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CatalogoGalactico.Services;
 
-/// <summary>Rankings, MVP y simulación de batallas.</summary>
-public class EstadisticasService(CatalogoDbContext db) : IEstadisticasService
+/// <summary>
+/// Rankings, MVP y simulación de batallas. Con el sistema de experiencia, todo usa el
+/// poder efectivo (poder base + bonus por nivel) y la simulación reparte XP.
+/// </summary>
+public class EstadisticasService(CatalogoDbContext db, IProgresionService progresion) : IEstadisticasService
 {
     private const double FactorMin = 0.90;
     private const double FactorMax = 1.10;
     private const int MultiplicadorPeligrosidad = 10;
     private const int BonusFuerzaSensitivo = 15;
 
+    // XP del sistema de experiencia
+    private const int XpParticipar = 10;
+    private const int XpGanar = 20;
+    private const int XpPerder = 5;
+    private const int XpEmpate = 10;
+    private const int XpMvp = 15;
+    private const double MultiplicadorMasDebil = 1.5;
+
     public async Task<Resultado<List<RankingItem>>> RankingAsync(string por)
     {
         var campo = por.Trim().ToLowerInvariant();
-        if (campo is not ("poder" or "peligrosidad"))
-            return Resultado<List<RankingItem>>.Falla("Valor de 'por' inválido. Use 'poder' o 'peligrosidad'.");
+        if (campo is not ("poder" or "peligrosidad" or "experiencia"))
+            return Resultado<List<RankingItem>>.Falla("Valor de 'por' inválido. Use 'poder', 'peligrosidad' o 'experiencia'.");
 
         var datos = await db.Cartas.AsNoTracking()
             .Select(c => new { c.Personaje.Id, c.Personaje.Nombre, c.Personaje.Faccion, c.Poder, c.NivelPeligrosidad })
             .ToListAsync();
+        var xpTotal = await progresion.XpTotalAsync();
 
         var ranking = datos
-            .Select(x => new { x.Id, x.Nombre, x.Faccion, Valor = campo == "poder" ? x.Poder : x.NivelPeligrosidad })
+            .Select(x =>
+            {
+                var xp = xpTotal.GetValueOrDefault(x.Id);
+                var valor = campo switch
+                {
+                    "poder" => ProgresionService.PoderEfectivo(x.Poder, xp),
+                    "peligrosidad" => ProgresionService.PeligrosidadEfectiva(x.NivelPeligrosidad, xp),
+                    _ => xp
+                };
+                return new { x.Id, x.Nombre, x.Faccion, Valor = valor };
+            })
             .OrderByDescending(x => x.Valor).ThenBy(x => x.Nombre)
             .Select((x, i) => new RankingItem(i + 1, x.Id, x.Nombre, x.Faccion, x.Valor))
             .ToList();
@@ -40,9 +62,12 @@ public class EstadisticasService(CatalogoDbContext db) : IEstadisticasService
 
         var ids = ev.Participantes.Select(p => p.PersonajeId).ToList();
         var cartas = await db.Cartas.AsNoTracking().Include(c => c.Personaje).Where(c => ids.Contains(c.PersonajeId)).ToListAsync();
+        var xpPrevia = await progresion.XpPreviaAsync(ids, ev.Anio);
 
         var mejor = cartas
-            .OrderByDescending(c => c.Poder).ThenByDescending(c => c.NivelPeligrosidad).ThenBy(c => c.PersonajeId)
+            .OrderByDescending(c => ProgresionService.PoderEfectivo(c.Poder, xpPrevia.GetValueOrDefault(c.PersonajeId)))
+            .ThenByDescending(c => ProgresionService.PeligrosidadEfectiva(c.NivelPeligrosidad, xpPrevia.GetValueOrDefault(c.PersonajeId)))
+            .ThenBy(c => c.PersonajeId)
             .FirstOrDefault();
         if (mejor is null)
             return Resultado<MvpRespuesta>.Falla("Ningún participante del evento tiene carta, no se puede calcular el MVP.");
@@ -80,17 +105,20 @@ public class EstadisticasService(CatalogoDbContext db) : IEstadisticasService
         if (rebeldes.Count == 0 || imperiales.Count == 0)
             return Resultado<SimulacionRespuesta>.Falla("Se necesita al menos un participante Rebelde y uno del Imperio para simular.");
 
-        // 2) Calcular.
+        // 2) Calcular con el poder efectivo: solo cuenta la XP de eventos de años anteriores.
+        var xpPrevia = await progresion.XpPreviaAsync(ids, ev.Anio);
+        int Xp(int personajeId) => xpPrevia.GetValueOrDefault(personajeId);
+
         var semillaUsada = semilla ?? Random.Shared.Next();
         var rng = new Random(semillaUsada);
-        var bandoRebelde = ConstruirBando("Rebelde", rebeldes, rng);
-        var bandoImperio = ConstruirBando("Imperio", imperiales, rng);
+        var bandoRebelde = ConstruirBando("Rebelde", rebeldes, Xp, rng);
+        var bandoImperio = ConstruirBando("Imperio", imperiales, Xp, rng);
 
         var ganador = bandoRebelde.FuerzaFinal > bandoImperio.FuerzaFinal ? "Rebelde"
                     : bandoRebelde.FuerzaFinal < bandoImperio.FuerzaFinal ? "Imperio"
                     : "Empate";
 
-        var criterio = $"Fuerza individual = poder + peligrosidad x {MultiplicadorPeligrosidad} + {BonusFuerzaSensitivo} si es sensible a la Fuerza. " +
+        var criterio = $"Fuerza individual = poder efectivo (poder base + bonus por nivel) + peligrosidad efectiva x {MultiplicadorPeligrosidad} + {BonusFuerzaSensitivo} si es sensible a la Fuerza. " +
                        $"Cada bando suma sus fuerzas y las multiplica por un factor aleatorio entre {FactorMin:0.00} y {FactorMax:0.00} (semilla {semillaUsada}). " +
                        "Gana el bando con mayor fuerza final; si coinciden, es Empate. Los neutrales no suman a ningún bando.";
 
@@ -100,20 +128,70 @@ public class EstadisticasService(CatalogoDbContext db) : IEstadisticasService
             ? $"Empate: {bandoRebelde.FuerzaFinal} vs {bandoImperio.FuerzaFinal}"
             : $"Ganó el bando {ganador} ({bandoRebelde.FuerzaFinal} vs {bandoImperio.FuerzaFinal}). Destacado: {destacado.Nombre}";
 
-        // 3) Guardar el resultado solo cuando todo salió bien.
+        // MVP del evento: mayor poder efectivo entre todos los participantes.
+        var mvpId = filas
+            .OrderByDescending(f => ProgresionService.PoderEfectivo(f.C.Poder, Xp(f.P.Id)))
+            .ThenByDescending(f => ProgresionService.PeligrosidadEfectiva(f.C.NivelPeligrosidad, Xp(f.P.Id)))
+            .ThenBy(f => f.P.Id)
+            .First().P.Id;
+
+        var ganadorEraMasDebil = ganador == "Rebelde" ? bandoRebelde.FuerzaBase < bandoImperio.FuerzaBase
+                               : ganador == "Imperio" ? bandoImperio.FuerzaBase < bandoRebelde.FuerzaBase
+                               : false;
+
+        // 3) Repartir XP y guardar. Re-simular REEMPLAZA la XP del evento, no la acumula.
+        var experiencia = new List<XpParticipante>();
+        foreach (var participacion in ev.Participantes)
+        {
+            var p = personajes.First(x => x.Id == participacion.PersonajeId);
+            var bando = p.Faccion switch { Faccion.Rebelde => "Rebelde", Faccion.Imperio => "Imperio", _ => null };
+
+            var motivos = new List<string> { $"participó +{XpParticipar}" };
+            var xp = XpParticipar;
+
+            if (bando is not null)
+            {
+                if (ganador == "Empate") { xp += XpEmpate; motivos.Add($"empate +{XpEmpate}"); }
+                else if (bando == ganador) { xp += XpGanar; motivos.Add($"bando ganador +{XpGanar}"); }
+                else { xp += XpPerder; motivos.Add($"bando perdedor +{XpPerder}"); }
+            }
+
+            if (p.Id == mvpId) { xp += XpMvp; motivos.Add($"MVP +{XpMvp}"); }
+
+            if (bando is not null && bando == ganador && ganadorEraMasDebil)
+            {
+                xp = (int)Math.Round(xp * MultiplicadorMasDebil);
+                motivos.Add($"x{MultiplicadorMasDebil} por ganar siendo el bando más débil");
+            }
+
+            participacion.XpOtorgada = xp;
+            participacion.XpMotivo = string.Join(", ", motivos);
+
+            var nivelAntes = ProgresionService.NivelPorXp(Xp(p.Id));
+            var nivelDespues = ProgresionService.NivelPorXp(Xp(p.Id) + xp);
+            experiencia.Add(new XpParticipante(p.Id, p.Nombre, xp, participacion.XpMotivo, nivelAntes, nivelDespues, nivelDespues > nivelAntes));
+        }
+
         ev.Ganador = ganador;
         await db.SaveChangesAsync();
 
         return Resultado<SimulacionRespuesta>.Ok(new SimulacionRespuesta(
             ev.Id, ev.Nombre, semillaUsada, bandoRebelde, bandoImperio, neutrales, ganador, criterio,
-            destacado?.PersonajeId, resultado));
+            destacado?.PersonajeId, resultado, experiencia));
     }
 
-    private static BandoResultado ConstruirBando(string nombre, List<(Personaje P, CardPersonaje C)> filas, Random rng)
+    private static BandoResultado ConstruirBando(
+        string nombre, List<(Personaje P, CardPersonaje C)> filas, Func<int, int> xpPrevia, Random rng)
     {
         var detalle = filas
-            .Select(f => new ParticipanteFuerza(f.P.Id, f.P.Nombre,
-                f.C.Poder + f.C.NivelPeligrosidad * MultiplicadorPeligrosidad + (f.P.FuerzaSensitivo ? BonusFuerzaSensitivo : 0)))
+            .Select(f =>
+            {
+                var xp = xpPrevia(f.P.Id);
+                var fuerza = ProgresionService.PoderEfectivo(f.C.Poder, xp)
+                             + ProgresionService.PeligrosidadEfectiva(f.C.NivelPeligrosidad, xp) * MultiplicadorPeligrosidad
+                             + (f.P.FuerzaSensitivo ? BonusFuerzaSensitivo : 0);
+                return new ParticipanteFuerza(f.P.Id, f.P.Nombre, fuerza);
+            })
             .ToList();
 
         var fuerzaBase = detalle.Sum(d => d.Fuerza);

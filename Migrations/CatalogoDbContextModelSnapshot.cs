@@ -273,6 +273,13 @@ namespace CatalogoGalactico.Migrations
                     b.Property<bool>("Murio")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("XpMotivo")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("XpOtorgada")
+                        .HasColumnType("int");
+
                     b.HasKey("EventoId", "PersonajeId");
 
                     b.HasIndex("PersonajeId");
@@ -284,151 +291,176 @@ namespace CatalogoGalactico.Migrations
                         {
                             EventoId = 1,
                             PersonajeId = 3,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 1,
                             PersonajeId = 8,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 1,
                             PersonajeId = 9,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 2,
                             PersonajeId = 1,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 2,
                             PersonajeId = 3,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 2,
                             PersonajeId = 4,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 2,
                             PersonajeId = 5,
-                            Murio = true
+                            Murio = true,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 2,
                             PersonajeId = 8,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 1,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 2,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 3,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 4,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 6,
-                            Murio = true
+                            Murio = true,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 3,
                             PersonajeId = 8,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 4,
                             PersonajeId = 1,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 4,
                             PersonajeId = 2,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 4,
                             PersonajeId = 3,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 4,
                             PersonajeId = 4,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 4,
                             PersonajeId = 8,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 1,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 2,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 3,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 4,
-                            Murio = true
+                            Murio = true,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 7,
-                            Murio = true
+                            Murio = true,
+                            XpOtorgada = 0
                         },
                         new
                         {
                             EventoId = 5,
                             PersonajeId = 8,
-                            Murio = false
+                            Murio = false,
+                            XpOtorgada = 0
                         });
                 });
 

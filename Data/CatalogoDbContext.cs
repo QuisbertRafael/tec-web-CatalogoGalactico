@@ -67,6 +67,8 @@ public class CatalogoDbContext : DbContext
                 .WithMany(p => p.Participaciones)
                 .HasForeignKey(x => x.PersonajeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            e.Property(x => x.XpMotivo).HasMaxLength(200);
         });
 
         mb.Entity<Usuario>(e =>
