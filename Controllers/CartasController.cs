@@ -6,7 +6,7 @@ namespace CatalogoGalactico.Controllers;
 
 /// <summary>Cartas coleccionables de los personajes (relación 1:1).</summary>
 [Route("cartas")]
-public class CartasController(ICardService cartas) : ApiControllerBase
+public class CartasController(ICardService cartas, IProgresionService progresion) : ApiControllerBase
 {
     /// <summary>Lista cartas con filtros opcionales combinables.</summary>
     /// <param name="personajeId">Carta de un personaje concreto.</param>
@@ -64,4 +64,22 @@ public class CartasController(ICardService cartas) : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Eliminar(int id) => ResponderSinContenido(await cartas.EliminarAsync(id));
+
+    /// <summary>Progresión de la carta: XP total, nivel, rango, poder base y efectivo, y desglose por evento.</summary>
+    /// <remarks>El poder base nunca cambia; el poder efectivo suma un bonus por nivel según la XP ganada en las simulaciones.</remarks>
+    /// <response code="404">No existe la carta.</response>
+    [HttpGet("{id:int}/progresion")]
+    [ProducesResponseType<ProgresionCarta>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Progresion(int id) => Responder(await progresion.ProgresionAsync(id));
+
+    /// <summary>Poder efectivo de la carta en una fecha de la historia.</summary>
+    /// <param name="fecha">"10 BBY", "3 ABY" o "Batalla de Yavin". Solo cuenta la XP de eventos de años anteriores.</param>
+    /// <remarks>Ejemplo: GET /cartas/1/poder?fecha=3 ABY</remarks>
+    /// <response code="404">No existe la carta.</response>
+    [HttpGet("{id:int}/poder")]
+    [ProducesResponseType<PoderEnFecha>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> PoderEnFecha(int id, [FromQuery] string fecha) =>
+        Responder(await progresion.PoderEnFechaAsync(id, fecha));
 }

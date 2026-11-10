@@ -15,6 +15,16 @@ public record BandoResultado(
     double FactorAleatorio,
     double FuerzaFinal);
 
+/// <summary>Experiencia que ganó un participante en la simulación.</summary>
+public record XpParticipante(
+    int PersonajeId,
+    string Nombre,
+    int XpGanada,
+    string Motivo,
+    int NivelAntes,
+    int NivelDespues,
+    bool SubioDeNivel);
+
 public record SimulacionRespuesta(
     int EventoId,
     string Evento,
@@ -25,4 +35,5 @@ public record SimulacionRespuesta(
     string Ganador,
     string Criterio,
     int? GanadorId,
-    string Resultado);
+    string Resultado,
+    List<XpParticipante> Experiencia);

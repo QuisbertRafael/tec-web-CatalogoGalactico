@@ -126,6 +126,9 @@ public class EventoService(CatalogoDbContext db) : IEventoService
             else
             {
                 actual.Murio = muertes.Contains(actual.PersonajeId);
+                // El evento cambió: el resultado y la experiencia anteriores ya no son válidos.
+                actual.XpOtorgada = 0;
+                actual.XpMotivo = null;
             }
         }
 
