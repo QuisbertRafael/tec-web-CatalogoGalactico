@@ -19,6 +19,16 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<CatalogoDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
+// Servicios Scoped: dependen del DbContext, que es Scoped (una instancia por petición HTTP).
+builder.Services.AddScoped<IPersonajeService, PersonajeService>();
+builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<IEventoService, EventoService>();
+builder.Services.AddScoped<IEstadisticasService, EstadisticasService>();
+
+// Los enums viajan como texto ("Rebelde", "Vivo") en JSON y en Swagger.
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
 {
@@ -46,6 +56,9 @@ builder.Services.AddSwaggerGen(o =>
         Contact = new OpenApiContact { Name = "Tecnologías Web 1" },
         License = new OpenApiLicense { Name = "Uso académico" }
     });
+
+    // Muestra en Swagger los comentarios /// de los controladores.
+    o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
 });
 
 // CORS para el frontend en React (Vite).
@@ -73,5 +86,6 @@ app.UseSwaggerUI(o =>
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+app.MapControllers();
 
 app.Run();
