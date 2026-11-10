@@ -1,0 +1,38 @@
+@host = http://localhost:5156
+
+### Personajes con filtros combinados
+GET {{host}}/personajes?faccion=Imperio&fuerzaSensitivo=true
+
+### Ficha de combate (personaje + carta)
+GET {{host}}/personajes/1/con-card
+
+### Eventos de un personaje
+GET {{host}}/personajes/1/eventos
+
+### Ranking
+GET {{host}}/personajes/ranking?por=poder
+
+### MVP de un evento
+GET {{host}}/eventos/5/mvp
+
+### Simular una batalla (misma semilla = mismo resultado)
+POST {{host}}/eventos/5/simular?semilla=42
+
+### Progresión de una carta (después de simular)
+GET {{host}}/cartas/1/progresion
+
+### Poder de una carta en una fecha
+GET {{host}}/cartas/1/poder?fecha=3 ABY
+
+### Registrar un usuario (contraseña con hash, email cifrado)
+POST {{host}}/usuarios
+Content-Type: application/json
+
+{
+  "nombreUsuario": "rafa",
+  "email": "rafa@example.com",
+  "password": "ClaveSegura123"
+}
+
+### Usuario por id (email descifrado)
+GET {{host}}/usuarios/1
