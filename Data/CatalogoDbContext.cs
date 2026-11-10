@@ -13,6 +13,7 @@ public class CatalogoDbContext : DbContext
     public DbSet<CardPersonaje> Cartas => Set<CardPersonaje>();
     public DbSet<Evento> Eventos => Set<Evento>();
     public DbSet<EventoParticipante> EventoParticipantes => Set<EventoParticipante>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -66,6 +67,16 @@ public class CatalogoDbContext : DbContext
                 .WithMany(p => p.Participaciones)
                 .HasForeignKey(x => x.PersonajeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        mb.Entity<Usuario>(e =>
+        {
+            e.Property(u => u.NombreUsuario).HasMaxLength(50).IsRequired();
+            e.HasIndex(u => u.NombreUsuario).IsUnique();
+            // Hash de ASP.NET Core Identity (nunca la contraseña).
+            e.Property(u => u.PasswordHash).HasMaxLength(255).IsRequired();
+            // Guarda el email YA CIFRADO (lo cifra UsuarioService con CifradoService).
+            e.Property(u => u.Email).HasMaxLength(500).IsRequired();
         });
 
         // Datos iniciales (se insertan con la migración).
