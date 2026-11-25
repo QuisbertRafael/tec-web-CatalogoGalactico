@@ -104,3 +104,29 @@ consultada, y re-simular un evento reemplaza su XP en lugar de acumularla.
 | `Services/` | Interfaces y servicios con las reglas de negocio (Scoped) y `CifradoService` (Singleton) |
 | `Controllers/` | Controladores y traducción de `Resultado<T>` a HTTP |
 | `Migrations/` | Migraciones de EF Core |
+
+
+## Práctica de logs
+
+Se usa `ILogger<T>` sin dependencias adicionales. El middleware registra inicio, estado HTTP, duración y CID de las peticiones a los controladores; los servicios registran acciones del catálogo con el mismo ámbito de correlación. Las respuestas 4xx son Warning y las 5xx Error. No se registran contraseñas, emails, tokens ni cuerpos de peticiones en los logs personalizados.
+
+### Ejecutar en Windows
+
+Si ya configuraste los secretos y aplicaste las migraciones en la versión anterior, no repitas estos pasos: el identificador de secretos y las migraciones son los mismos. En caso contrario, sigue las secciones 1–3. Para una conexión exclusivamente local que falle por SSL, prueba `Server=127.0.0.1;Port=3306;Database=catalogo_galactico;User=catalogo_user;Password=SU_CLAVE;SslMode=None;AllowPublicKeyRetrieval=True;`.
+
+```powershell
+dotnet run --launch-profile http 2>&1 | Tee-Object -FilePath actividad-logs.txt
+```
+
+Abre http://localhost:5156/swagger y realiza estas consultas (o usa el script `powershell -NoProfile -ExecutionPolicy Bypass -File .\Evidencias\Probar-Logs.ps1` en otra terminal).
+
+| Consulta | Resultado esperado con datos iniciales |
+|---|---|
+| GET /personajes | 200 y cantidad de personajes |
+| GET /cartas/1/progresion | 200 y XP/nivel |
+| GET /cartas/1/poder?fecha=3%20ABY | 200 y poder en fecha |
+| GET /personajes/2147483647 | 404 y Warning si no existe |
+
+La simulación `POST /eventos/5/simular?semilla=42` es opcional y modifica el ganador y XP en la base de datos. No es necesaria para evidenciar logs.
+
+En la consola o archivo busca `cid=`. Copia el valor de `X-Correlation-Id` de la respuesta y ejecuta en otra terminal: `Select-String -Path actividad-logs.txt -SimpleMatch "CID_REAL"`. Captura las respuestas y los logs reales.

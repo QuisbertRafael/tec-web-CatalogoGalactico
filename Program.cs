@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using CatalogoGalactico.Data;
+using CatalogoGalactico.Middleware;
 using CatalogoGalactico.Entities;
 using CatalogoGalactico.Services;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +10,15 @@ using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Consola legible y ámbitos de correlación compartidos con los servicios.
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(o =>
+{
+    o.SingleLine = true;
+    o.IncludeScopes = true;
+    o.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+});
 
 // La cadena de conexión NO está en el código ni en appsettings.json:
 // viene de Secret Manager (dotnet user-secrets). Ver README.
@@ -88,6 +98,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseRouting();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseCors();
 
 app.UseSwagger();

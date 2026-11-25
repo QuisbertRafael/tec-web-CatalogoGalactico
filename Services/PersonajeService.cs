@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CatalogoGalactico.Services;
 
-public class PersonajeService(CatalogoDbContext db) : IPersonajeService
+public class PersonajeService(CatalogoDbContext db, ILogger<PersonajeService> logger) : IPersonajeService
 {
     public async Task<List<PersonajeRespuesta>> ListarAsync(
         Faccion? faccion, bool? fuerzaSensitivo, EstadoPersonaje? estado, string? nombre)
@@ -18,12 +18,14 @@ public class PersonajeService(CatalogoDbContext db) : IPersonajeService
         if (!string.IsNullOrWhiteSpace(nombre)) q = q.Where(p => p.Nombre.Contains(nombre));
 
         var lista = await q.OrderBy(p => p.Id).ToListAsync();
+        logger.LogInformation("Personajes consultados: cantidad={Cantidad}", lista.Count);
         return lista.Select(p => p.ADto()).ToList();
     }
 
     public async Task<Resultado<PersonajeRespuesta>> ObtenerAsync(int id)
     {
         var p = await db.Personajes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        if (p is null) logger.LogWarning("Personaje no encontrado: id={PersonajeId}", id);
         return p is null
             ? Resultado<PersonajeRespuesta>.Falla($"No existe el personaje con id {id}.", 404)
             : Resultado<PersonajeRespuesta>.Ok(p.ADto());
@@ -57,6 +59,7 @@ public class PersonajeService(CatalogoDbContext db) : IPersonajeService
         };
         db.Personajes.Add(p);
         await db.SaveChangesAsync();
+        logger.LogInformation("Personaje creado: id={PersonajeId}", p.Id);
         return Resultado<PersonajeRespuesta>.Ok(p.ADto(), 201);
     }
 
@@ -88,6 +91,7 @@ public class PersonajeService(CatalogoDbContext db) : IPersonajeService
         p.FuerzaSensitivo = r.FuerzaSensitivo;
         p.Image = r.Image?.Trim() ?? "";
         await db.SaveChangesAsync();
+        logger.LogInformation("Personaje actualizado: id={PersonajeId}", p.Id);
         return Resultado<PersonajeRespuesta>.Ok(p.ADto());
     }
 
@@ -105,6 +109,7 @@ public class PersonajeService(CatalogoDbContext db) : IPersonajeService
 
         db.Personajes.Remove(p); // su carta (1:1) se elimina en cascada
         await db.SaveChangesAsync();
+        logger.LogInformation("Personaje eliminado: id={PersonajeId}", id);
         return Resultado<bool>.Ok(true);
     }
 

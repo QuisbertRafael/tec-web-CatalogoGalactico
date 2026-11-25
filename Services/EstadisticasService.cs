@@ -10,7 +10,7 @@ namespace CatalogoGalactico.Services;
 /// Rankings, MVP y simulación de batallas. Con el sistema de experiencia, todo usa el
 /// poder efectivo (poder base + bonus por nivel) y la simulación reparte XP.
 /// </summary>
-public class EstadisticasService(CatalogoDbContext db, IProgresionService progresion) : IEstadisticasService
+public class EstadisticasService(CatalogoDbContext db, IProgresionService progresion, ILogger<EstadisticasService> logger) : IEstadisticasService
 {
     private const double FactorMin = 0.90;
     private const double FactorMax = 1.10;
@@ -174,6 +174,8 @@ public class EstadisticasService(CatalogoDbContext db, IProgresionService progre
 
         ev.Ganador = ganador;
         await db.SaveChangesAsync();
+
+        logger.LogInformation("Simulación guardada: evento={EventoId} ganador={Ganador} participantes={Cantidad} semilla={Semilla}", ev.Id, ganador, experiencia.Count, semillaUsada);
 
         return Resultado<SimulacionRespuesta>.Ok(new SimulacionRespuesta(
             ev.Id, ev.Nombre, semillaUsada, bandoRebelde, bandoImperio, neutrales, ganador, criterio,

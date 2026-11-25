@@ -10,7 +10,7 @@ namespace CatalogoGalactico.Services;
 /// Sistema de experiencia. El poder base de la carta nunca cambia: el poder efectivo se calcula
 /// con la XP que el personaje ganó en eventos anteriores a la fecha consultada.
 /// </summary>
-public class ProgresionService(CatalogoDbContext db) : IProgresionService
+public class ProgresionService(CatalogoDbContext db, ILogger<ProgresionService> logger) : IProgresionService
 {
     // XP mínima para cada nivel: nivel 1 = 0, nivel 2 = 100, nivel 3 = 250, nivel 4 = 500, nivel 5 = 900.
     private static readonly int[] UmbralesXp = [0, 100, 250, 500, 900];
@@ -78,7 +78,11 @@ public class ProgresionService(CatalogoDbContext db) : IProgresionService
     public async Task<Resultado<ProgresionCarta>> ProgresionAsync(int cartaId)
     {
         var carta = await db.Cartas.AsNoTracking().Include(c => c.Personaje).FirstOrDefaultAsync(c => c.Id == cartaId);
-        if (carta is null) return Resultado<ProgresionCarta>.Falla($"No existe la carta con id {cartaId}.", 404);
+        if (carta is null)
+        {
+            logger.LogWarning("Carta no encontrada para progresión: id={CartaId}", cartaId);
+            return Resultado<ProgresionCarta>.Falla($"No existe la carta con id {cartaId}.", 404);
+        }
 
         var participaciones = await db.EventoParticipantes.AsNoTracking()
             .Include(x => x.Evento)
@@ -88,6 +92,8 @@ public class ProgresionService(CatalogoDbContext db) : IProgresionService
 
         var xp = participaciones.Sum(x => x.XpOtorgada);
         var nivel = NivelPorXp(xp);
+
+        logger.LogInformation("Progresión consultada: carta={CartaId} xp={Xp} nivel={Nivel}", cartaId, xp, nivel);
 
         return Resultado<ProgresionCarta>.Ok(new ProgresionCarta(
             carta.Id, carta.PersonajeId, carta.Personaje.Nombre, carta.Personaje.Faccion,
@@ -108,6 +114,8 @@ public class ProgresionService(CatalogoDbContext db) : IProgresionService
         var xpPorPersonaje = await XpPreviaAsync([carta.PersonajeId], anio);
         var xp = xpPorPersonaje.GetValueOrDefault(carta.PersonajeId);
         var nivel = NivelPorXp(xp);
+
+        logger.LogInformation("Poder en fecha consultado: carta={CartaId} anio={Anio} xp={Xp} nivel={Nivel}", cartaId, anio, xp, nivel);
 
         return Resultado<PoderEnFecha>.Ok(new PoderEnFecha(
             carta.Id, carta.PersonajeId, carta.Personaje.Nombre, FechaGalactica.Formatear(anio), anio,
